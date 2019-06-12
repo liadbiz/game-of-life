@@ -10,7 +10,7 @@ import tkinter as tk
 
 class mainFrame(tk.Tk):
     '''环境类（GUI）'''
-    def __init__(self, unit_size=20, row_num=30, col_num=30, life_type="empty"):
+    def __init__(self, unit_size=20, row_num=41, col_num=61, life_type="empty"):
         '''初始化'''
         super().__init__()
         self.MAZE_R = row_num
@@ -28,7 +28,7 @@ class mainFrame(tk.Tk):
         h = self.MAZE_R * self.UNIT
         w = self.MAZE_C * self.UNIT
         padding = 5
-        self.geometry('{0}x{1}'.format(h +2 * padding, w + 2 * padding)) #窗口大小
+        self.geometry('{0}x{1}'.format(h + 2 * padding, w + 2 * padding)) #窗口大小
         self.canvas = tk.Canvas(self, bg='white', height= h + 2 * padding, width=w +2 * padding)
 
         # 画网格
@@ -42,8 +42,8 @@ class mainFrame(tk.Tk):
 
         # 画生命所在的地方
         for l in self.LIFES:
-            self._draw_rect(l[0], l[1], 'black')
-            self.canvas.pack() # 显示画作！
+            self._draw_rect(l[0] + self.MAZE_C  // 2, l[1] + self.MAZE_R // 2, 'black')
+            self.canvas.pack() 
 
     def _draw_rect(self, x, y, color):
         '''画矩形，  x,y表示横,竖第几个格子'''
