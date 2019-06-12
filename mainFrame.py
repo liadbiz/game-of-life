@@ -16,6 +16,7 @@ class mainFrame(tk.Tk):
         self.MAZE_R = row_num
         self.MAZE_C = col_num
         self.STATES = [[0] * self.MAZE_C for _ in range(self.MAZE_R)]
+        self.padding = 5
         if life_type == "empty":
             self.LIFES = []
         elif life_type == "sample":
@@ -27,26 +28,29 @@ class mainFrame(tk.Tk):
         self.title('Game Of Life')
         h = self.MAZE_R * self.UNIT
         w = self.MAZE_C * self.UNIT
-        # self.geometry('{0}x{1}'.format(h + 2 * padding, w + 2 * padding)) #窗口大小
+        # self.geometry('{0}x{1}'.format(h + 2 * self.padding, w + 2 * self.padding)) #窗口大小
         # 视图区
-        padding = 5
+        self.padding = 5
 
-        self.viewFrame = tk.Frame(self, height=h+padding, width=w+padding, bg='red')
+        self.viewFrame = tk.Frame(self, height=h+self.padding, width=w+self.padding, bg='red')
         self.viewFrame.pack(side=tk.LEFT, padx=10, pady=10)
-        self.canvas = tk.Canvas(self.viewFrame, height=h + padding , width=w + padding)
+        self.canvas = tk.Canvas(self.viewFrame, height=h + self.padding , width=w + self.padding)
 
         # 画网格
         # 先画竖线
         for c in range(self.MAZE_C + 1):
-            self.canvas.create_line(c * self.UNIT + padding,padding, c * self.UNIT + padding, h + padding)
+            self.canvas.create_line(c * self.UNIT + self.padding,self.padding, c * self.UNIT + self.padding, h + self.padding)
 
         # 再画横线
         for r in range(self.MAZE_R + 1):
-            self.canvas.create_line(padding, r * self.UNIT + padding, w + padding, r * self.UNIT + padding)
+            self.canvas.create_line(self.padding, r * self.UNIT + self.padding, w + self.padding, r * self.UNIT + self.padding)
 
         # 画生命所在的地方
+        self.life_controller = []
         for l in self.LIFES:
-            self._draw_rect(l[0] + self.MAZE_C  // 2, l[1] + self.MAZE_R // 2, 'black')
+            rect = self._draw_rect(l[0] + self.MAZE_C  // 2, l[1] + self.MAZE_R // 2, 'black')
+            self.life_controller.append(rect)
+            
          
         self.canvas.pack() 
         # 控制区域
@@ -88,16 +92,40 @@ class mainFrame(tk.Tk):
 
     def _draw_rect(self, x, y, color):
         '''画矩形，  x,y表示横,竖第几个格子'''
-        padding = 5
-        coor = [self.UNIT * x + padding , self.UNIT * y + padding , self.UNIT * (x+1) + padding , self.UNIT * (y+1) + padding]
+        self.padding = 5
+        coor = [self.UNIT * x + self.padding , self.UNIT * y + self.padding , self.UNIT * (x+1) + self.padding , self.UNIT * (y+1) + self.padding]
         return self.canvas.create_rectangle(*coor, fill = color)
+    
+    def play(self):
+        # 开始进化
+        # 在这里写更新状态的逻辑，实际上是得到下一轮为活着的格子的坐标，然后调用更新的函数，这个过程每一个进化周期执行一次
+        self._update_lifes()
+
+    def _update_lifes(self):
+        # destroy lifes last time
+        for i in range(10):
+            old_coords = []
+            for l in self.life_controller:
+                old_coords.append(self.canvas.coords(l))
+                self.canvas.delete(l)
+            
+            self.life_controller.clear()
+            for c in old_coords:
+                print(c)
+                x, y = (c[0] - self.padding) // self.UNIT + 1, (c[1] - self.padding) // self.UNIT+ 1
+                self.life_controller.append(self._draw_rect(x, y, 'black'))
+
+            self.update()
+            time.sleep(1)
+                
+                
 
     def move_agent_to(self, state, step_time=0.01):
         '''移动玩家到新位置，根据传入的状态'''
         coor_old = self.canvas.coords(self.rect) # 形如[5.0, 5.0, 35.0, 35.0]（第一个格子左上、右下坐标）
         x, y = state % 6, state // 6 #横竖第几个格子
-        padding = 5 # 内边距5px，参见CSS
-        coor_new = [self.UNIT * x + padding, self.UNIT * y + padding, self.UNIT * (x+1) - padding, self.UNIT * (y+1) - padding]
+        self.padding = 5 # 内边距5px，参见CSS
+        coor_new = [self.UNIT * x + self.padding, self.UNIT * y + self.padding, self.UNIT * (x+1) - self.padding, self.UNIT * (y+1) - self.padding]
         dx_pixels, dy_pixels = coor_new[0] - coor_old[0], coor_new[1] - coor_old[1] # 左上角顶点坐标之差
         self.canvas.move(self.rect, dx_pixels, dy_pixels)
         self.update() # tkinter内置的update!
@@ -105,4 +133,5 @@ class mainFrame(tk.Tk):
 
 if __name__ == "__main__":
     grid = mainFrame(life_type = 'sample')
+    grid.play()
     grid.mainloop()
