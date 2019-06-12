@@ -27,14 +27,18 @@ class mainFrame(tk.Tk):
         self.title('Game Of Life')
         h = self.MAZE_R * self.UNIT
         w = self.MAZE_C * self.UNIT
+        # self.geometry('{0}x{1}'.format(h + 2 * padding, w + 2 * padding)) #窗口大小
+        # 视图区
         padding = 5
-        self.geometry('{0}x{1}'.format(h + 2 * padding, w + 2 * padding)) #窗口大小
-        self.canvas = tk.Canvas(self, bg='white', height= h + 2 * padding, width=w +2 * padding)
+
+        self.viewFrame = tk.Frame(self, height=h+padding, width=w+padding, bg='red')
+        self.viewFrame.pack(side=tk.LEFT, padx=10, pady=10)
+        self.canvas = tk.Canvas(self.viewFrame, height=h + padding , width=w + padding)
 
         # 画网格
         # 先画竖线
         for c in range(self.MAZE_C + 1):
-            self.canvas.create_line(c * self.UNIT + padding, padding, c * self.UNIT + padding, h + padding)
+            self.canvas.create_line(c * self.UNIT + padding,padding, c * self.UNIT + padding, h + padding)
 
         # 再画横线
         for r in range(self.MAZE_R + 1):
@@ -43,12 +47,49 @@ class mainFrame(tk.Tk):
         # 画生命所在的地方
         for l in self.LIFES:
             self._draw_rect(l[0] + self.MAZE_C  // 2, l[1] + self.MAZE_R // 2, 'black')
-            self.canvas.pack() 
+         
+        self.canvas.pack() 
+        # 控制区域
+        self.controlFrame = tk.Frame(self, width=30, height=30)
+        self.controlFrame.pack(side=tk.TOP)
+
+        self.controlTopFrame1 = tk.Frame(self.controlFrame)
+        self.controlTopFrame1.pack(side=tk.TOP)
+        # 开始暂停按钮
+        self.startStopButton = tk.Button(self.controlTopFrame1, text='start', width=5)
+        self.startStopButton.pack(padx=5, pady=10, side=tk.LEFT)
+
+        # 更新按钮， 只有开始暂停按钮为暂停状态时才显示更新按钮，此时为手动更新
+        self.updateButton = tk.Button(self.controlTopFrame1, text='update', width=5)
+        self.updateButton.pack(padx=5, pady=10, side=tk.LEFT)
+
+        self.controlTopFrame2 = tk.Frame(self.controlFrame)
+        self.controlTopFrame2.pack(side=tk.TOP)
+        # 初始状态选择框
+        initStates = ['10-cell-row', 'exploder', 'glider', 'gosper-glider-gun', 'lightweight-spaceship', 'small-exploder', 'tumbler']
+        self.initStatesSelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initStates))
+        for i, s in enumerate(initStates):
+            self.initStatesSelectBox.insert(i, s)
+        self.initStatesSelectBox.pack(side=tk.TOP, padx=15, pady=10)
+
+        # 更新速度选择
+        initSpeed = ['1px', '2px', '3px', '4px']
+        self.initSpeedsSelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initSpeed))
+        for i, s in enumerate(initSpeed):
+            self.initSpeedsSelectBox.insert(i, s)
+        self.initSpeedsSelectBox.pack(side=tk.TOP, padx=15, pady=10)
+
+        # 格子密度选择
+        initDensity = ['1px', '2px', '3px']
+        self.initDensitySelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initDensity))
+        for i, s in enumerate(initSpeed):
+            self.initDensitySelectBox.insert(i, s)
+        self.initDensitySelectBox.pack(side=tk.TOP, padx=15, pady=10)
 
     def _draw_rect(self, x, y, color):
         '''画矩形，  x,y表示横,竖第几个格子'''
-        padding = 5 # 内边距5px，参见CSS
-        coor = [self.UNIT * x + padding, self.UNIT * y + padding, self.UNIT * (x+1) + padding, self.UNIT * (y+1) + padding]
+        padding = 5
+        coor = [self.UNIT * x + padding , self.UNIT * y + padding , self.UNIT * (x+1) + padding , self.UNIT * (y+1) + padding]
         return self.canvas.create_rectangle(*coor, fill = color)
 
     def move_agent_to(self, state, step_time=0.01):
