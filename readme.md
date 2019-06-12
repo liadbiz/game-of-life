@@ -16,4 +16,9 @@ and observing how it evolves, or, for advanced "players", by creating patterns w
 
 ### What Is This
 
-This the code challenge of ThoughtWorks Pair Programming Camp
+This the code challenge of ThoughtWorks Pair Programming Camp.
+
+Team member:
+
++ Haihao Zhu
++ Han Li
