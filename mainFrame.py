@@ -7,6 +7,7 @@ import pickle
 import pathlib
 import os
 import tkinter as tk
+import itertools
 
 class mainFrame(tk.Tk):
     '''环境类（GUI）'''
@@ -19,8 +20,9 @@ class mainFrame(tk.Tk):
         self.padding = 5
         if life_type == "empty":
             self.LIFES = []
-        elif life_type == "sample":
-            self.LIFES = [(0,0), (1, 0), (1, 1), (1, 2), (2, 2), (3, 2), (3, 3)]
+        elif life_type == "Glider":
+            self.LIFES = [(-1,1), (0,-1), (0,1), (1,0), (1,1)]
+            self.LIFES = [(c[0] + self.MAZE_C // 2, c[1] + self.MAZE_R // 2) for c in self.LIFES]
         self.UNIT = unit_size
         self._initUI()
     
@@ -48,7 +50,7 @@ class mainFrame(tk.Tk):
         # 画生命所在的地方
         self.life_controller = []
         for l in self.LIFES:
-            rect = self._draw_rect(l[0] + self.MAZE_C  // 2, l[1] + self.MAZE_R // 2, 'black')
+            rect = self._draw_rect(l[0], l[1], 'black')
             self.life_controller.append(rect)
             
          
@@ -93,30 +95,62 @@ class mainFrame(tk.Tk):
     def _draw_rect(self, x, y, color):
         '''画矩形，  x,y表示横,竖第几个格子'''
         self.padding = 5
-        coor = [self.UNIT * x + self.padding , self.UNIT * y + self.padding , self.UNIT * (x+1) + self.padding , self.UNIT * (y+1) + self.padding]
+        coor = [self.UNIT * x  + self.padding , self.UNIT * y  + self.padding , self.UNIT * (x+1) + self.padding , self.UNIT * (y+1) + self.padding]
         return self.canvas.create_rectangle(*coor, fill = color)
     
+    def get_neighbors(self, l):
+        x, y = l[0], l[1]
+        r = [-1, 0, 1]
+        x_ = [x+_ for _ in r]
+        y_ = [y+_ for _ in r]
+        neighbors = list(itertools.product(x_, y_))
+        neighbors = [c for c in neighbors if c[0] >= 0 and c[0] <= self.MAZE_C and c[1] >=0 and c[1] <= self.MAZE_R ]
+        return neighbors
+         
+        
+    def  update_lifes(self):
+        new_lifes = []
+        to_be_updated = set()
+        print(self.LIFES)
+        for l in self.LIFES:
+            for n in self.get_neighbors(l):
+                to_be_updated.add(n)
+        for l in to_be_updated:
+            print(l)
+            neighbors = self.get_neighbors(l)
+            # print(neighbors)
+            live_neighbors = sum(1 for n in neighbors if n in self.LIFES and (n[0] != l[0] or n[1] != l[1]))
+            print(live_neighbors)
+            if (l in self.LIFES and (live_neighbors == 2 or live_neighbors == 3)) or (l not in self.LIFES and (live_neighbors == 3)):
+                new_lifes.append(l)
+        print(new_lifes) 
+        return new_lifes 
+
+    def update_ui(self):
+        # old_coords = []
+        for l in self.life_controller:
+            # old_coords.append(self.canvas.coords(l))
+            self.canvas.delete(l)
+        
+        self.life_controller.clear()
+        new_lifes = self.update_lifes()
+        for c in new_lifes:
+            self.life_controller.append(self._draw_rect(c[0], c[1], 'black'))
+        
+        self.LIFES = new_lifes
+
     def play(self):
         # 开始进化
         # 在这里写更新状态的逻辑，实际上是得到下一轮为活着的格子的坐标，然后调用更新的函数，这个过程每一个进化周期执行一次
-        self._update_lifes()
+        for i in range(10):
+            self.update_ui()
+            self.update()
+            time.sleep(1)
+
 
     def _update_lifes(self):
         # destroy lifes last time
-        for i in range(10):
-            old_coords = []
-            for l in self.life_controller:
-                old_coords.append(self.canvas.coords(l))
-                self.canvas.delete(l)
-            
-            self.life_controller.clear()
-            for c in old_coords:
-                print(c)
-                x, y = (c[0] - self.padding) // self.UNIT + 1, (c[1] - self.padding) // self.UNIT+ 1
-                self.life_controller.append(self._draw_rect(x, y, 'black'))
-
-            self.update()
-            time.sleep(1)
+        pass
                 
                 
 
@@ -132,6 +166,6 @@ class mainFrame(tk.Tk):
         time.sleep(step_time)
 
 if __name__ == "__main__":
-    grid = mainFrame(life_type = 'sample')
+    grid = mainFrame(life_type = 'Glider')
     grid.play()
     grid.mainloop()
