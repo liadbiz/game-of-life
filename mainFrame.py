@@ -8,6 +8,9 @@ import pathlib
 import os
 import tkinter as tk
 import itertools
+import threading
+
+status = 0
 
 class mainFrame(tk.Tk):
     '''环境类（GUI）'''
@@ -16,8 +19,8 @@ class mainFrame(tk.Tk):
         super().__init__()
         self.MAZE_R = row_num
         self.MAZE_C = col_num
-        self.STATES = [[0] * self.MAZE_C for _ in range(self.MAZE_R)]
         self.padding = 5
+        self.stepTime  = 1
         if life_type == "empty":
             self.LIFES = []
         elif life_type == "Glider":
@@ -64,6 +67,7 @@ class mainFrame(tk.Tk):
         # 开始暂停按钮
         self.startStopButton = tk.Button(self.controlTopFrame1, text='start', width=5)
         self.startStopButton.pack(padx=5, pady=10, side=tk.LEFT)
+        self.startStopButton.bind('<Button>', self.startOrStop)
 
         # 更新按钮， 只有开始暂停按钮为暂停状态时才显示更新按钮，此时为手动更新
         self.updateButton = tk.Button(self.controlTopFrame1, text='update', width=5)
@@ -98,6 +102,7 @@ class mainFrame(tk.Tk):
         coor = [self.UNIT * x  + self.padding , self.UNIT * y  + self.padding , self.UNIT * (x+1) + self.padding , self.UNIT * (y+1) + self.padding]
         return self.canvas.create_rectangle(*coor, fill = color)
     
+
     def get_neighbors(self, l):
         x, y = l[0], l[1]
         r = [-1, 0, 1]
@@ -111,23 +116,24 @@ class mainFrame(tk.Tk):
     def  update_lifes(self):
         new_lifes = []
         to_be_updated = set()
-        print(self.LIFES)
+        # print(self.LIFES)
         for l in self.LIFES:
             for n in self.get_neighbors(l):
                 to_be_updated.add(n)
         for l in to_be_updated:
-            print(l)
+            # print(l)
             neighbors = self.get_neighbors(l)
             # print(neighbors)
             live_neighbors = sum(1 for n in neighbors if n in self.LIFES and (n[0] != l[0] or n[1] != l[1]))
-            print(live_neighbors)
+            # print(live_neighbors)
             if (l in self.LIFES and (live_neighbors == 2 or live_neighbors == 3)) or (l not in self.LIFES and (live_neighbors == 3)):
                 new_lifes.append(l)
-        print(new_lifes) 
+        # print(new_lifes) 
         return new_lifes 
 
     def update_ui(self):
         # old_coords = []
+        print('in update ui')
         for l in self.life_controller:
             # old_coords.append(self.canvas.coords(l))
             self.canvas.delete(l)
@@ -139,14 +145,26 @@ class mainFrame(tk.Tk):
         
         self.LIFES = new_lifes
 
+    def startOrStop(self, event):
+        print('in event ')
+        global status
+        if status == 1:
+            self.startStopButton.config(text='start')
+            status = 0
+        elif status == 0:
+            self.startStopButton.config(text='stop')
+            status = 1
+
     def play(self):
         # 开始进化
         # 在这里写更新状态的逻辑，实际上是得到下一轮为活着的格子的坐标，然后调用更新的函数，这个过程每一个进化周期执行一次
-        for i in range(10):
+        print('in play')
+        global staus
+        if status == 1:
             self.update_ui()
             self.update()
-            time.sleep(1)
 
+        self.after(1000, self.play)
 
     def _update_lifes(self):
         # destroy lifes last time
@@ -165,7 +183,9 @@ class mainFrame(tk.Tk):
         self.update() # tkinter内置的update!
         time.sleep(step_time)
 
+
 if __name__ == "__main__":
     grid = mainFrame(life_type = 'Glider')
     grid.play()
     grid.mainloop()
+
