@@ -21,14 +21,19 @@ class mainFrame(tk.Tk):
         self.MAZE_C = col_num
         self.padding = 5
         self.stepTime  = 1
-        if life_type == "empty":
-            self.LIFES = []
-        elif life_type == "Glider":
-            self.LIFES = [(-1,1), (0,-1), (0,1), (1,0), (1,1)]
-            self.LIFES = [(c[0] + self.MAZE_C // 2, c[1] + self.MAZE_R // 2) for c in self.LIFES]
+        self.life_type = life_type
         self.UNIT = unit_size
+        self.set_lifes()
         self._initUI()
     
+    def set_lifes(self):
+        self.LIFES = []
+        if self.life_type == "empty":
+            self.LIFES = []
+        elif self.life_type == "Glider":
+            self.LIFES = [(-1,1), (0,-1), (0,1), (1,0), (1,1)]
+            self.LIFES = [(c[0] + self.MAZE_C // 2, c[1] + self.MAZE_R // 2) for c in self.LIFES]
+
     def _initUI(self):
         self.title('Game Of Life')
         h = self.MAZE_R * self.UNIT
@@ -70,8 +75,9 @@ class mainFrame(tk.Tk):
         self.startStopButton.bind('<Button>', self.startOrStop)
 
         # 更新按钮， 只有开始暂停按钮为暂停状态时才显示更新按钮，此时为手动更新
-        self.updateButton = tk.Button(self.controlTopFrame1, text='update', width=5)
-        self.updateButton.pack(padx=5, pady=10, side=tk.LEFT)
+        self.resetButton= tk.Button(self.controlTopFrame1, text='reset', width=5)
+        self.resetButton.pack(padx=5, pady=10, side=tk.LEFT)
+        self.resetButton.bind('<Button>', self.reset)
 
         self.controlTopFrame2 = tk.Frame(self.controlFrame)
         self.controlTopFrame2.pack(side=tk.TOP)
@@ -129,7 +135,7 @@ class mainFrame(tk.Tk):
             if (l in self.LIFES and (live_neighbors == 2 or live_neighbors == 3)) or (l not in self.LIFES and (live_neighbors == 3)):
                 new_lifes.append(l)
         # print(new_lifes) 
-        return new_lifes 
+        self.LIFES = new_lifes
 
     def update_ui(self):
         # old_coords = []
@@ -138,15 +144,13 @@ class mainFrame(tk.Tk):
             # old_coords.append(self.canvas.coords(l))
             self.canvas.delete(l)
         
-        self.life_controller.clear()
-        new_lifes = self.update_lifes()
-        for c in new_lifes:
+        for c in self.LIFES:
             self.life_controller.append(self._draw_rect(c[0], c[1], 'black'))
         
-        self.LIFES = new_lifes
+        # self.LIFES = new_lifes
 
     def startOrStop(self, event):
-        print('in event ')
+        print('in event startorstop')
         global status
         if status == 1:
             self.startStopButton.config(text='start')
@@ -155,12 +159,23 @@ class mainFrame(tk.Tk):
             self.startStopButton.config(text='stop')
             status = 1
 
+    def reset(self, event):
+        print("in event reset")
+        global status
+        status = 0 # stop
+        self.startStopButton.config(text='start')
+        # reset lifes
+        self.set_lifes()
+        self.update_ui()
+        
+        
     def play(self):
         # 开始进化
         # 在这里写更新状态的逻辑，实际上是得到下一轮为活着的格子的坐标，然后调用更新的函数，这个过程每一个进化周期执行一次
         print('in play')
         global staus
         if status == 1:
+            self.update_lifes()
             self.update_ui()
             self.update()
 
