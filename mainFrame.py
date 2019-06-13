@@ -30,7 +30,7 @@ class mainFrame(tk.Tk):
         self.LIFES = []
         if self.life_type == "empty":
             self.LIFES = []
-        elif self.life_type == "Glider":
+        elif self.life_type == "glider":
             self.LIFES = [(-1,1), (0,-1), (0,1), (1,0), (1,1)]
             self.LIFES = [(c[0] + self.MAZE_C // 2, c[1] + self.MAZE_R // 2) for c in self.LIFES]
 
@@ -84,6 +84,7 @@ class mainFrame(tk.Tk):
         # 初始状态选择框
         initStates = ['10-cell-row', 'exploder', 'glider', 'gosper-glider-gun', 'lightweight-spaceship', 'small-exploder', 'tumbler']
         self.initStatesSelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initStates))
+        self.initStatesSelectBox.bind('<<ListboxSelect>>', self.resetInitStatus)
         for i, s in enumerate(initStates):
             self.initStatesSelectBox.insert(i, s)
         self.initStatesSelectBox.pack(side=tk.TOP, padx=15, pady=10)
@@ -101,6 +102,18 @@ class mainFrame(tk.Tk):
         for i, s in enumerate(initSpeed):
             self.initDensitySelectBox.insert(i, s)
         self.initDensitySelectBox.pack(side=tk.TOP, padx=15, pady=10)
+        
+    def resetInitStatus(self, event):
+        print('in event resetInitStatus')
+        w = event.widget
+        index = int(w.curselection()[0])
+        value = w.get(index)
+        print(value)
+        status = 0
+        self.startStopButton.config(text="start")
+        self.life_type = value
+        self.set_lifes()
+        self.update_ui()
 
     def _draw_rect(self, x, y, color):
         '''画矩形，  x,y表示横,竖第几个格子'''
@@ -200,7 +213,7 @@ class mainFrame(tk.Tk):
 
 
 if __name__ == "__main__":
-    grid = mainFrame(life_type = 'Glider')
+    grid = mainFrame(life_type = 'glider')
     grid.play()
     grid.mainloop()
 
