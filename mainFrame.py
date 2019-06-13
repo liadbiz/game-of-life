@@ -23,6 +23,7 @@ class mainFrame(tk.Tk):
         self.stepTime  = 1
         self.life_type = life_type
         self.UNIT = unit_size
+        self.speed = 1000
         self.set_lifes()
         self._initUI()
     
@@ -103,19 +104,35 @@ class mainFrame(tk.Tk):
         self.initStatesSelectBox.pack(side=tk.TOP, padx=15, pady=10)
 
         # 更新速度选择
-        initSpeed = ['1px', '2px', '3px', '4px']
+        initSpeed = ['1px', '2px', '4px', '8px']
         self.initSpeedsSelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initSpeed))
         for i, s in enumerate(initSpeed):
             self.initSpeedsSelectBox.insert(i, s)
         self.initSpeedsSelectBox.pack(side=tk.TOP, padx=15, pady=10)
+        self.initSpeedsSelectBox.bind('<<ListboxSelect>>', self.setSpeed)
 
         # 格子密度选择
-        initDensity = ['1px', '2px', '3px']
+        initDensity = ['1px', '2px', '4px', '8px']
         self.initDensitySelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initDensity))
         for i, s in enumerate(initSpeed):
             self.initDensitySelectBox.insert(i, s)
         self.initDensitySelectBox.pack(side=tk.TOP, padx=15, pady=10)
         
+    def setSpeed(self, event):
+        print("in envet setSpeed")
+        w = event.widget
+        index = int(w.curselection()[0])
+        value = w.get(index)
+        if value == "1px":
+            self.speed = 1000
+        elif value == "2px":
+            self.speed = 500
+        elif value == "4px":
+            self.speed = 250
+        elif value == "8px":
+            self.speed = 125
+
+    
     def resetInitStatus(self, event):
         print('in event resetInitStatus')
         w = event.widget
@@ -205,7 +222,7 @@ class mainFrame(tk.Tk):
             self.update_ui()
             self.update()
 
-        self.after(1000, self.play)
+        self.after(self.speed, self.play)
 
     def _update_lifes(self):
         # destroy lifes last time
