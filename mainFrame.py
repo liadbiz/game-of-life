@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import pandas as pd
 import random
 import time
 import pickle
@@ -14,7 +13,7 @@ status = 0
 
 class mainFrame(tk.Tk):
     '''环境类（GUI）'''
-    def __init__(self, unit_size=20, row_num=41, col_num=61, life_type="empty"):
+    def __init__(self, unit_size=10, row_num=81, col_num=121, life_type="empty"):
         '''初始化'''
         super().__init__()
         self.MAZE_R = row_num
@@ -24,6 +23,7 @@ class mainFrame(tk.Tk):
         self.life_type = life_type
         self.UNIT = unit_size
         self.speed = 1000
+        # self.density = 1
         self.set_lifes()
         self._initUI()
     
@@ -38,13 +38,16 @@ class mainFrame(tk.Tk):
         elif self.life_type == "10-cell-row":
             self.LIFES = [(-5,0),(-4,0),(-3,0),(-2,0),(-1,0),(0,0),(1,0),(2,0),(3,0),(4,0)]
         elif self.life_type == "gosper-glider-gun":
-            self.LIFES = [(-18,-5),(-18,-4),(-17,-5),(-17,-4),(-11,-4),(-11,-3),(-10,-5),(-10,-3),(-9,-5),(-9,-4),(-2,-3),(-2,-2),(-2,-1),(-1,-3),(0,-2),(4,-6),(4,-5),(5,-7),(5,-5),(6,-7),(6,-6),(6,5),(6,6),(7,5),(7,7),(8,5),(17,-7),(17,-6),(18,-7),(18,-6),(18,0),(18,1),(18,2),(19,0),(20,1)]
+            self.LIFES = [(-18,-5),(-18,-4),(-17,-5),(-17,-4),(-11,-4),(-11,-3),(-10,-5),(-10,-3),(-9,-5),
+                    (-9,-4),(-2,-3),(-2,-2),(-2,-1),(-1,-3),(0,-2),(4,-6),(4,-5),(5,-7),(5,-5),(6,-7),(6,-6),
+                    (6,5),(6,6),(7,5),(7,7),(8,5),(17,-7),(17,-6),(18,-7),(18,-6),(18,0),(18,1),(18,2),(19,0),(20,1)]
         elif self.life_type == "lightweight-spaceship":
             self.LIFES = [(-2,-1),(-2,1),(-1,-2),(0,-2),(1,-2),(1,1),(2,-2),(2,-1),(2,0)]
         elif self.life_type == "small-exploder":
             self.LIFES = [(-1,-1),(-1,0),(0,-2),(0,-1),(0,1),(1,-1),(1,0)]
         elif self.life_type == "tumbler":
-            self.LIFES = [(-3,0),(-3,1),(-3,2),(-2,-3),(-2,-2),(-2,2),(-1,-3),(-1,-2),(-1,-1),(-1,0),(-1,1),(1,-3),(1,-2),(1,-1),(1,0),(1,1),(2,-3),(2,-2),(2,2),(3,0),(3,1),(3,2)]
+            self.LIFES = [(-3,0),(-3,1),(-3,2),(-2,-3),(-2,-2),(-2,2),(-1,-3),(-1,-2),(-1,-1),(-1,0),(-1,1),
+                    (1,-3),(1,-2),(1,-1),(1,0),(1,1),(2,-3),(2,-2),(2,2),(3,0),(3,1),(3,2)]
         if self.life_type != "empty":
             self.LIFES = [(c[0] + self.MAZE_C // 2, c[1] + self.MAZE_R // 2) for c in self.LIFES]
 
@@ -112,11 +115,12 @@ class mainFrame(tk.Tk):
         self.initSpeedsSelectBox.bind('<<ListboxSelect>>', self.setSpeed)
 
         # 格子密度选择
-        initDensity = ['1px', '2px', '4px', '8px']
-        self.initDensitySelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initDensity))
-        for i, s in enumerate(initSpeed):
-            self.initDensitySelectBox.insert(i, s)
-        self.initDensitySelectBox.pack(side=tk.TOP, padx=15, pady=10)
+        # initDensity = ['1px', '2px', '4px', '8px']
+        # self.initDensitySelectBox = tk.Listbox(self.controlTopFrame2, bd=0, height=len(initDensity))
+        # for i, s in enumerate(initSpeed):
+        #     self.initDensitySelectBox.insert(i, s)
+        # self.initDensitySelectBox.pack(side=tk.TOP, padx=15, pady=10)
+        # self.initSpeedsSelectBox.bind('<<ListboxSelect>>', self.changeDensity)
         
     def setSpeed(self, event):
         print("in envet setSpeed")
@@ -132,7 +136,19 @@ class mainFrame(tk.Tk):
         elif value == "8px":
             self.speed = 125
 
-    
+    # def changeDensity(self, event):
+    #     w = event.widget
+    #     index = int(w.curselection()[0])
+    #     value = w.get(index)
+    #     if value == "1px":
+    #         self.density= 1
+    #     elif value == "2px":
+    #         self.density= 2
+    #     elif value == "4px":
+    #         self.density= 4
+    #     elif value == "8px":
+    #         self.density= 8
+
     def resetInitStatus(self, event):
         print('in event resetInitStatus')
         w = event.widget
@@ -215,7 +231,7 @@ class mainFrame(tk.Tk):
     def play(self):
         # 开始进化
         # 在这里写更新状态的逻辑，实际上是得到下一轮为活着的格子的坐标，然后调用更新的函数，这个过程每一个进化周期执行一次
-        print('in play')
+        # print('in play')
         global staus
         if status == 1:
             self.update_lifes()
@@ -224,22 +240,6 @@ class mainFrame(tk.Tk):
 
         self.after(self.speed, self.play)
 
-    def _update_lifes(self):
-        # destroy lifes last time
-        pass
-                
-                
-
-    def move_agent_to(self, state, step_time=0.01):
-        '''移动玩家到新位置，根据传入的状态'''
-        coor_old = self.canvas.coords(self.rect) # 形如[5.0, 5.0, 35.0, 35.0]（第一个格子左上、右下坐标）
-        x, y = state % 6, state // 6 #横竖第几个格子
-        self.padding = 5 # 内边距5px，参见CSS
-        coor_new = [self.UNIT * x + self.padding, self.UNIT * y + self.padding, self.UNIT * (x+1) - self.padding, self.UNIT * (y+1) - self.padding]
-        dx_pixels, dy_pixels = coor_new[0] - coor_old[0], coor_new[1] - coor_old[1] # 左上角顶点坐标之差
-        self.canvas.move(self.rect, dx_pixels, dy_pixels)
-        self.update() # tkinter内置的update!
-        time.sleep(step_time)
 
 
 if __name__ == "__main__":
