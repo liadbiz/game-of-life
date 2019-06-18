@@ -122,6 +122,7 @@ class mainFrame(tk.Tk):
         # self.initDensitySelectBox.pack(side=tk.TOP, padx=15, pady=10)
         # self.initSpeedsSelectBox.bind('<<ListboxSelect>>', self.changeDensity)
         
+     
     def setSpeed(self, event):
         print("in envet setSpeed")
         w = event.widget
@@ -227,7 +228,7 @@ class mainFrame(tk.Tk):
         self.set_lifes()
         self.update_ui()
         
-        
+                
     def play(self):
         # 开始进化
         # 在这里写更新状态的逻辑，实际上是得到下一轮为活着的格子的坐标，然后调用更新的函数，这个过程每一个进化周期执行一次
